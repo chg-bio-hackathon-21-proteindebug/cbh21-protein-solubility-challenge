@@ -1,7 +1,7 @@
 FROM python:3.8-slim
 WORKDIR /home/biolib
 COPY requirements.txt .
-RUN apt-get update && apt-get install dssp build-essential wget libxml2 libxml2-dev libxml2-utils autoconf automake libtool
+RUN apt-get update && apt-get -y install dssp build-essential wget libxml2 libxml2-dev libxml2-utils autoconf automake libtool
 RUN wget http://freesasa.github.io/freesasa-2.0.3.tar.gz
 RUN tar -xzf freesasa-2.0.3.tar.gz
 WORKDIR /opt/freesasa-2.0.3
