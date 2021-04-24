@@ -3,6 +3,7 @@ The entry point for your prediction algorithm.
 """
 
 from __future__ import annotations
+import enum
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from enum import unique
 import os
@@ -19,6 +20,7 @@ from DSSPparser import parseDSSP
 from joblib import dump, load
 from collections import Counter,defaultdict, OrderedDict
 import sklearn
+import numpy as np
 
 
 MODEL_PATH = "data/first_model.bin"  # under /home/biolib
@@ -272,7 +274,7 @@ def featurize(structure: Structure, nonstruct_feats: OrderedDict) -> list[Any]:
     # create the feature vector
 
 
-    feature_names,features = [v for (k,v) in nonstruct_feats.items()]
+    features = [v for (k,v) in nonstruct_feats.items()]
     print (features)
 
 
@@ -287,8 +289,9 @@ def ml_inference(features: list[Any]) -> float:
 
     loaded_model = load(MODEL_PATH)
     feature_vec=np.array(0.0,len(features))
-
-    pred_single = loaded_model.predict(features)
+    for feat_i, feat_val in enumerate(features):
+        feature_vec[feat_i] = float(feat_val)
+    pred_single = loaded_model.predict(feature_vec)
 
     return (pred_single)
 
