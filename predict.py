@@ -53,7 +53,7 @@ def predict(pdb_file: Path) -> float:
     # parse PDB
     parser = PDBParser()
     #generate_pdb_list([pdb_file])
-    init_feat_vec = pdb_to_feat_vec([pdb_file])
+    init_feat_vec = pdb_to_feat_vec(pdb_file)
     structure = parser.get_structure(pdb_file.stem, pdb_file)
 
     # featurize + perform inference
