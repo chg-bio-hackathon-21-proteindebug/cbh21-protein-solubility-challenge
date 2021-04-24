@@ -66,10 +66,14 @@ def predict(pdb_file: Path) -> float:
 def pdb_to_feat_vec (pdb_path):
     pdb_feat_dict = defaultdict()
     try:
-        with open(pdb_path,'rb') as pdb_file:
-            structure = freesasa.Structure(pdb_file)
-            result = freesasa.calc(structure)
+        if os.path.isfile(pdb_path):
+            structure = freesasa.Structure(pdb_path)
+            result = freesasa.calc(structure=structure)
             area_classes = freesasa.classifyResults(result, structure)
+        else:
+            print(pdb_path+' does not exist. failed to extract freeSASA features')
+            area_classes = {'Polar': 0.0, "Apolar": 0.0}
+
     except Exception as e:
         print(pdb_path+' failed to extract freeSASA features')
         print(e)
