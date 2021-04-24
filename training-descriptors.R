@@ -4,22 +4,26 @@ library(purrr)
 setwd(dir ="D:\\projects\\cbh21-protein-solubility-challenge\\data\\training\\crystal_structs")
 pdbs <- list.files(pattern = ".pdb")
 pdbs_seq <- map(head(pdbs), readPDB)
+peptides <- modify(pdbs_seq, ~ .x $chain_A)
 
-peptide <- pdbs_seq[[1]]$chain_A
+aac <- map(peptides, extractAAC)
+paac <- map(peptides, extractPAAC)
+apaac <- map(peptides, extractAPAAC)
+mo_bro <- map(peptides, extractMoreauBroto)
+moran <- map(peptides, extractMoran)
+geary <- map(peptides, extractGeary)
+ctdc <- map(peptides, extractCTDC)
+ctdt <- map(peptides, extractCTDT)
+ctdd <- map(peptides, extractCTDT)
+ctriad <- map(peptides, extractCTriad)
+socn <- map(peptides, extractSOCN)
+qso <- map(peptides, extractSOCN)
 
 
-pdbaac <- extractAAC(peptide)
-accpaac <- extractPAAC(peptide)
-apaac <- extractAPAAC(peptide)
-mo_bro <- extractMoreauBroto(peptide)
-moran <- extractMoran(peptide)
-geary <- extractGeary(peptide)
-ctdc <- extractCTDC(peptide)
-ctdt <- extractCTDT(peptide)
-ctdd <- extractCTDD(peptide)
-ctriad <- extractCTriad(peptide)
-socn <- extractSOCN(peptide)
-qso <- extractQSO(peptide)
+
+
+
+
 
 
 
