@@ -71,17 +71,17 @@ def pdb_to_feat_vec (pdb_path):
             result = freesasa.calc(structure=structure)
             area_classes = freesasa.classifyResults(result, structure)
         else:
-            print(pdb_path+' does not exist. failed to extract freeSASA features')
+            print(str(pdb_path)+' does not exist. failed to extract freeSASA features')
             area_classes = {'Polar': 0.0, "Apolar": 0.0}
 
     except Exception as e:
-        print(pdb_path+' failed to extract freeSASA features')
+        print(str(pdb_path)+' failed to extract freeSASA features')
         print(e)
         area_classes = {'Polar' : 0.0, "Apolar":0.0}
     try:
         sec_str_based_features=compute_dssp_based(str(pdb_path))
     except Exception as exc_obj:
-        print(pdb_path+' failed to extract secondary structure features')
+        print(str(pdb_path)+' failed to extract secondary structure features')
         print(exc_obj)
         sec_str_based_features = {}
     with open(str(pdb_path), 'r') as pdb_file:
