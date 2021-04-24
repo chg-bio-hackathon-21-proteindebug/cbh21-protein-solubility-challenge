@@ -79,7 +79,7 @@ def pdb_to_feat_vec (pdb_path):
         print(e)
         area_classes = {'Polar' : 0.0, "Apolar":0.0}
     try:
-        sec_str_based_features=predict.compute_dssp_based(str(pdb_path))
+        sec_str_based_features=compute_dssp_based(str(pdb_path))
     except Exception as exc_obj:
         print(pdb_path+' failed to extract secondary structure features')
         print(exc_obj)
