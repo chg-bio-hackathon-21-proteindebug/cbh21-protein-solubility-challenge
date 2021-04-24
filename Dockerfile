@@ -13,6 +13,8 @@ WORKDIR /opt
 RUN rm freesasa-2.0.3.tar.gz
 WORKDIR /home/biolib
 RUN pip install -r requirements.txt
+RUN freesasa -h
 COPY predict.py .
+COPY first_model.bin data/
 COPY data/test.zip data/
 ENTRYPOINT ["python3", "predict.py"]
