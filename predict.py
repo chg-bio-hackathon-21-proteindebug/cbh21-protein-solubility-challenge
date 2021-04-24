@@ -17,7 +17,7 @@ import re
 import freesasa
 from DSSPparser import parseDSSP
 from joblib import dump, load
-from collections import Counter,defaultdict
+from collections import Counter,defaultdict, OrderedDict
 import sklearn
 
 
@@ -93,11 +93,11 @@ def pdb_to_feat_vec (pdb_path):
             LysArg, AspGlu, AspGluLysArg, PheTyrTrp = calculate_aa_combos(seq)
             pdb_name = str(pdb_path.parts[-1])
 
-            new_feats = {"PDB File": pdb_name,  "Sequence": seq, "Length": len(seq),
-                                   "Lys+Arg/Len": LysArg, "Asp+Glu/Len": AspGlu, "Asp+Glu+Lys+Arg/Len": AspGluLysArg,
-                                   "Phe+Tyr+Trp/Len": PheTyrTrp,
-                                   "Polar": area_classes['Polar'],
-                                   "Apolar": area_classes['Apolar']}
+            new_feats = OrderedDict([("PDB File", pdb_name),  ("Sequence", seq), ("Length",  len(seq)),
+                                   ("Lys+Arg/Len",  LysArg), ("Asp+Glu/Len",  AspGlu), ("Asp+Glu+Lys+Arg/Len",  AspGluLysArg),
+                                   ("Phe+Tyr+Trp/Len",  PheTyrTrp),
+                                   ("Polar",  area_classes['Polar']),
+                                   ("Apolar",  area_classes['Apolar']) ])
             new_feats.update(sec_str_based_features)
             if  not test_mode:
                 new_feats["Solubility Score"] =  solubility_map[pdb_name]
@@ -222,7 +222,7 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
 
     bury_locs = ['buried','mod_buried', 'exposed']
 
-    aacdic = defaultdict(float)
+    aacdic = OrderedDict(float)
     str_sec = 'helix'
     for loc_i, loc in enumerate(bury_locs):
         aacdic['_'.join([str_sec,loc])] = h_fracs[loc_i]
@@ -267,22 +267,11 @@ def featurize(structure: Structure, nonstruct_feats: list[Any]) -> list[Any]:
     Calculates 3D ML features from the `structure`.
     """
 
-    # get all the residues
-    residues = [res for res in structure.get_residues()]
 
     # calculate some random 3D features (you should be smarter here!)
-    protein_length = residues[1]["CA"] - residues[-2]["CA"]
-    angle = calc_dihedral(
-        residues[1]["CA"].get_vector(),
-        residues[2]["CA"].get_vector(),
-        residues[-3]["CA"].get_vector(),
-        residues[-2]["CA"].get_vector(),
-    )
+
 
     # create the feature vector
-
-
-    #features = {"pro_len"protein_length, angle}
 
 
     features = nonstruct_feats
