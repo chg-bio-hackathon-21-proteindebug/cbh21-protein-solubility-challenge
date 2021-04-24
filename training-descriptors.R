@@ -3,7 +3,15 @@ library(purrr)
 
 setwd(dir ="D:\\projects\\cbh21-protein-solubility-challenge\\data\\training\\crystal_structs")
 pdbs <- list.files(pattern = ".pdb")
+
+#for testing use this line:
 pdbs_seq <- map(head(pdbs), readPDB)
+
+#this is main line
+#it results in long computation down the road
+#use with care
+# pdbs_seq <- map((pdbs), readPDB)
+
 peptides <- modify(pdbs_seq, ~ .x $chain_A)
 
 aac <- map(peptides, extractAAC)
