@@ -146,6 +146,8 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
                 res = row_dict['aa']
                 if res=='a': #correct for lower case cysteines
                     res = 'C'
+                if res == '!':
+                   continue #chain break. skip this line
                 reschain = row_dict['chain']
                 resacc = row_dict['acc']
         #with open(pathoutput+'/'+pdb+'.dssp') as fdssp:
