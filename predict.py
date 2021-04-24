@@ -66,8 +66,8 @@ def predict(pdb_file: Path) -> float:
 def pdb_to_feat_vec (pdb_path):
     pdb_feat_dict = defaultdict()
     try:
-        if os.path.isfile(pdb_path):
-            structure = freesasa.Structure(pdb_path)
+        if pdb_path.is_file():
+            structure = freesasa.Structure(str(pdb_path))
             result = freesasa.calc(structure=structure)
             area_classes = freesasa.classifyResults(result, structure)
         else:
@@ -79,12 +79,12 @@ def pdb_to_feat_vec (pdb_path):
         print(e)
         area_classes = {'Polar' : 0.0, "Apolar":0.0}
     try:
-        sec_str_based_features=predict.compute_dssp_based(pdb_path)
+        sec_str_based_features=predict.compute_dssp_based(str(pdb_path))
     except Exception as exc_obj:
         print(pdb_path+' failed to extract secondary structure features')
         print(exc_obj)
         sec_str_based_features = {}
-    with open(pdb_path, 'r') as pdb_file:
+    with open(str(pdb_path), 'r') as pdb_file:
 
         for record in SeqIO.parse(pdb_file, 'pdb-atom'):
             seq = str(record.seq)
