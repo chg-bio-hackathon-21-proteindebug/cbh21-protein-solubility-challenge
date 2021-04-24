@@ -3,6 +3,7 @@ The entry point for your prediction algorithm.
 """
 
 from __future__ import annotations
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from enum import unique
 import os
 import argparse
@@ -90,7 +91,8 @@ def pdb_to_feat_vec (pdb_path):
         for record in SeqIO.parse(pdb_file, 'pdb-atom'):
             seq = str(record.seq)
             LysArg, AspGlu, AspGluLysArg, PheTyrTrp = calculate_aa_combos(seq)
-            pdb_name = pdb.rstrip(".pdb")
+            pdb_name = str(pdb_path.parts[-1])
+
             new_feats = {"PDB File": pdb_name,  "Sequence": seq, "Length": len(seq),
                                    "Lys+Arg/Len": LysArg, "Asp+Glu/Len": AspGlu, "Asp+Glu+Lys+Arg/Len": AspGluLysArg,
                                    "Phe+Tyr+Trp/Len": PheTyrTrp,
