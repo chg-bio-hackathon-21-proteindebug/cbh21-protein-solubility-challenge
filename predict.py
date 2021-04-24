@@ -221,7 +221,7 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
 
     bury_locs = ['buried','mod_buried', 'exposed']
 
-    aacdic = OrderedDict(float)
+    aacdic = OrderedDict()
     str_sec = 'helix'
     for loc_i, loc in enumerate(bury_locs):
         aacdic['_'.join([str_sec,loc])] = h_fracs[loc_i]
