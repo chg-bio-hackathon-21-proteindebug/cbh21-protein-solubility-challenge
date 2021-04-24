@@ -18,7 +18,7 @@ from DSSPparser import parseDSSP
 from joblib import dump, load
 from collections import Counter,defaultdict
 
-MODEL_PATH = ""
+MODEL_PATH = "data/final_mode.bin"
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.ResidueDepth import get_surface
 from Bio.PDB.vectors import calc_dihedral
