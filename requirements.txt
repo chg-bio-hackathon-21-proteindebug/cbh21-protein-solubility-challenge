@@ -3,5 +3,5 @@ sklearn
 scipy
 BioPython
 numpy
-freesasa
 temppathlib
+freesasa
