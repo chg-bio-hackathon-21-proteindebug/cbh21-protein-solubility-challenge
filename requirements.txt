@@ -5,3 +5,4 @@ BioPython
 numpy
 temppathlib
 freesasa
+DSSPparser
