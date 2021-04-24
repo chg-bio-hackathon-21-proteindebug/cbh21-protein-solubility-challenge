@@ -4,4 +4,5 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 RUN apt-get install dssp
 COPY predict.py .
+COPY data/test.zip data/
 ENTRYPOINT ["python3", "predict.py"]
