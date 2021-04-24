@@ -13,11 +13,12 @@ import pprint
 from typing import Any
 import zipfile
 import re
-import DSSPparser
+import freesasa
 from DSSPparser import parseDSSP
 from joblib import dump, load
 from collections import Counter,defaultdict
 import sklearn
+
 
 MODEL_PATH = "data/first_model.bin"  # under /home/biolib
 from Bio.PDB.PDBParser import PDBParser
@@ -25,7 +26,7 @@ from Bio.PDB.ResidueDepth import get_surface
 from Bio.PDB.vectors import calc_dihedral
 from Bio.PDB.Structure import Structure
 import temppathlib
-import freesasa
+
 
 test_mode  = True
 # SASA_sol
