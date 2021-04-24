@@ -10,7 +10,7 @@ pdbs_seq <- map(head(pdbs), readPDB)
 #this is main line
 #it results in long computation down the road
 #use with care
-# pdbs_seq <- map((pdbs), readPDB)
+# pdbs_seq <- map(pdbs, readPDB)
 
 peptides <- modify(pdbs_seq, ~ .x $chain_A)
 
