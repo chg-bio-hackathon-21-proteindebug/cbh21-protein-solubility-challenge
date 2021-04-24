@@ -272,7 +272,7 @@ def featurize(structure: Structure, nonstruct_feats: OrderedDict) -> list[Any]:
     # create the feature vector
 
 
-    feature_names,features = [v for (k,v) in nonstruct_feats.iteritems()]
+    feature_names,features = [v for (k,v) in nonstruct_feats.items()]
     print (features)
 
 
