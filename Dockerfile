@@ -11,6 +11,7 @@ RUN make
 RUN make install
 WORKDIR /opt
 RUN rm freesasa-2.0.3.tar.gz
+WORKDIR /home/biolib
 RUN pip install -r requirements.txt
 COPY predict.py .
 COPY data/test.zip data/
