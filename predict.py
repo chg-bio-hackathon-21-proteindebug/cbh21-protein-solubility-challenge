@@ -54,7 +54,7 @@ def predict(pdb_file: Path) -> float:
 
     # parse PDB
     parser = PDBParser()
-    #generate_pdb_list([pdb_file])
+
     init_feat_vec = pdb_to_feat_vec(pdb_file)
     structure = parser.get_structure(pdb_file.stem, pdb_file)
 
@@ -66,7 +66,7 @@ def predict(pdb_file: Path) -> float:
     return predicted_solubility
 
 def pdb_to_feat_vec (pdb_path):
-    pdb_feat_dict = defaultdict()
+    pdb_feat_dict = OrderedDict()
     try:
         if pdb_path.is_file():
             structure = freesasa.Structure(str(pdb_path))
@@ -93,14 +93,14 @@ def pdb_to_feat_vec (pdb_path):
             LysArg, AspGlu, AspGluLysArg, PheTyrTrp = calculate_aa_combos(seq)
             pdb_name = str(pdb_path.parts[-1])
 
-            new_feats = OrderedDict([("PDB File", pdb_name),  ("Sequence", seq), ("Length",  len(seq)),
+            pdb_feat_dict = OrderedDict([("PDB File", pdb_name),  ("Sequence", seq), ("Length",  len(seq)),
                                    ("Lys+Arg/Len",  LysArg), ("Asp+Glu/Len",  AspGlu), ("Asp+Glu+Lys+Arg/Len",  AspGluLysArg),
                                    ("Phe+Tyr+Trp/Len",  PheTyrTrp),
                                    ("Polar",  area_classes['Polar']),
                                    ("Apolar",  area_classes['Apolar']) ])
-            new_feats.update(sec_str_based_features)
-            if  not test_mode:
-                new_feats["Solubility Score"] =  solubility_map[pdb_name]
+            pdb_feat_dict.update(sec_str_based_features)
+            # if  not test_mode:
+            #     pdb_feat_dict["Solubility Score"] = solubility_map[pdb_name]
 
     return(pdb_feat_dict)
 
@@ -154,7 +154,6 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
 
     str_res_dict = defaultdict()
     for chain in chains:
-
         for pd_row in pddict.iterrows():
             row_dict= pd_row[1]
             if row_dict['chain']==chain:
@@ -235,7 +234,6 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
     for loc_i, loc in enumerate(bury_locs):
         aacdic['_'.join([str_sec, loc])] = e_fracs[loc_i]
 
-
     # Amino acid composition
 
     for aac in allclass:
@@ -262,7 +260,7 @@ def calculate_aa_combos (sequence):
     return lys_arg, asp_glu, asp_glu_lys_arg, phe_tyr_trp
 
 
-def featurize(structure: Structure, nonstruct_feats: list[Any]) -> list[Any]:
+def featurize(structure: Structure, nonstruct_feats: OrderedDict) -> list[Any]:
     """
     Calculates 3D ML features from the `structure`.
     """
@@ -274,7 +272,9 @@ def featurize(structure: Structure, nonstruct_feats: list[Any]) -> list[Any]:
     # create the feature vector
 
 
-    features = nonstruct_feats
+    feature_names,features = [v for (k,v) in nonstruct_feats.iteritems()]
+    print (features)
+
 
     return (features)
 
@@ -286,6 +286,8 @@ def ml_inference(features: list[Any]) -> float:
     """
 
     loaded_model = load(MODEL_PATH)
+    feature_vec=np.array(0.0,len(features))
+
     pred_single = loaded_model.predict(features)
 
     return (pred_single)
