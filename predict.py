@@ -3,6 +3,7 @@ The entry point for your prediction algorithm.
 """
 
 from __future__ import annotations
+from enum import unique
 import os
 import argparse
 import csv
@@ -13,8 +14,9 @@ from typing import Any
 import zipfile
 import re
 import DSSPparser
+from DSSPparser import parseDSSP
 from joblib import dump, load
-from collections import Counter
+from collections import Counter,defaultdict
 
 MODEL_PATH = ""
 from Bio.PDB.PDBParser import PDBParser
@@ -60,28 +62,30 @@ def predict(pdb_file: Path) -> float:
 
 def pdb_to_feat_vec (pdb_path):
     pdb_feat_dict = defaultdict()
+    structure = freesasa.Structure(pdb_path)
+    result = freesasa.calc(structure)
+    area_classes = freesasa.classifyResults(result, structure)
+    try:
+        sec_str_based_features=predict.compute_dssp_based(pdb_path)
+    except Exception as e:
+        print(pdb_path+' failed to extract secondary structure features')
+        print(e)
     with open(pdb_path, 'r') as pdb_file:
-        structure = freesasa.Structure(pdb_file)
-        result = freesasa.calc(structure)
-        area_classes = freesasa.classifyResults(result, structure)
 
-        compute_dssp(pdb_path)
+
         for record in SeqIO.parse(pdb_file, 'pdb-atom'):
             seq = str(record.seq)
             LysArg, AspGlu, AspGluLysArg, PheTyrTrp = calculate_aa_combos(seq)
             pdb_name = pdb.rstrip(".pdb")
-            if test_mode:
-                pdb_feat_dict.update({"PDB File": pdb_name,  "Sequence": seq, "Length": len(seq),
+            new_feats = {"PDB File": pdb_name,  "Sequence": seq, "Length": len(seq),
                                    "Lys+Arg/Len": LysArg, "Asp+Glu/Len": AspGlu, "Asp+Glu+Lys+Arg/Len": AspGluLysArg,
                                    "Phe+Tyr+Trp/Len": PheTyrTrp,
                                    "Polar": area_classes['Polar'],
-                                   "Apolar": area_classes['Apolar']})
-            else:
-                pdb_feat_dict.update({"PDB File": pdb_name, "Solubility Score": solubility_map[pdb_name], "Sequence": seq, "Length": len(seq),
-                                   "Lys+Arg/Len": LysArg, "Asp+Glu/Len": AspGlu, "Asp+Glu+Lys+Arg/Len": AspGluLysArg,
-                                   "Phe+Tyr+Trp/Len": PheTyrTrp,
-                                   "Polar": area_classes['Polar'],
-                                   "Apolar": area_classes['Apolar']})
+                                   "Apolar": area_classes['Apolar']}
+            new_feats.update(sec_str_based_features)
+            if  not test_mode:
+                new_feats["Solubility Score"] =  solubility_map[pdb_name]
+
     return(pdb_feat_dict)
 
 
@@ -91,30 +95,34 @@ def structure_based_feats(pdb_path):
 
 
 def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
-    pdb_file = os.basename(pdb_path)
-    pdb_name = os.path.splitext(pdb_file,".pdb")[0]
+    pdb_file = os.path.basename(pdb_path)
+    pdb_name = os.path.splitext(pdb_file)[0]
 
 
     allclass = []
     for i in map_surface.keys():
         allclass = allclass+['buried_'+i, 'mod_buried_'+i, 'exposed_'+i]
     pathoutput ="/tmp/{}".format(pdb_file)
+    if not os.path.exists(pathoutput):
+        os.makedirs(pathoutput)
     try:
-        os.system('%s %s %s/%s.dssp' %
-                (pathmkdssp, pdb_file, pathoutput, pdb_name))
+        cmd_str = '%s -i %s -o %s/%s.dssp' %  (pathmkdssp, pdb_path, pathoutput, pdb_name)
+        ret_code = os.system(cmd_str)
+        #print("DSSP run:\n", cmd_str)
+        print ("DSSP ret code", ret_code)
     except Exception as e:
         print (e)
         print("DSSP problem with pdb_file %s".format(pdb_path))
-    dssp_file = "%s/%s.dssp"
+    dssp_file = "%s/%s.dssp" %(pathoutput,pdb_name)
     #fw.write('PDBid\t%s\n' %('\t'.join(['buried_L','buried_charged_sum','buried_aromatic'])))
     parse_dssp = parseDSSP(dssp_file)
     parse_dssp.parse()
 
-
-    pddict = parser.dictTodataframe()
+    pddict = parse_dssp.dictTodataframe()
 
     pdb = pdb_name
-    chains = 1
+    chains = set(pddict['chain'].to_list())
+    #print(chains)
     daac = defaultdict(list)
 
     # Denominator: len_protein
@@ -131,10 +139,13 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
     str_res_dict = defaultdict()
     for chain in chains:
 
-        for row_dict in pddict.iterrows():
+        for pd_row in pddict.iterrows():
+            row_dict= pd_row[1]
             if row_dict['chain']==chain:
                 resnum = row_dict['resnum']
                 res = row_dict['aa']
+                if res=='a': #correct for lower case cysteines
+                    res = 'C'
                 reschain = row_dict['chain']
                 resacc = row_dict['acc']
         #with open(pathoutput+'/'+pdb+'.dssp') as fdssp:
@@ -147,7 +158,8 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
 
 #                            resacc = ldssp[35:39].strip()
                 resacc_tri = float(resacc)/map_surface[res]
-                str_code = row_dict['struct']
+                str_code = row_dict['struct'].strip()
+
                 if str_code =='' or str_code =='C':
                     str_code == 'C'
                 cur_str_val = str_res_dict.get(str_code, [])
@@ -166,27 +178,40 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
                     str_res_dict.update({str_code: cur_str_val})
                 daac[resloc+'_'+res].append(reschain+'_'+resnum)
     #for H, B and E get fracs
-    h_cts = Counter(str_res_dict['H'])
-    b_cts = Counter(str_res_dict['B'])
-    e_cts = Counter(str_res_dict['C'])
-    h_fracs = [h_cts['buried']/pro_len,
-               h_cts['mod_buried']/pro_len, h_cts['exposed']/pro_len]
+    #print(str_res_dict)
+    if 'H' in str_res_dict:
+        h_cts = Counter(str_res_dict['H'])
+        h_fracs = [h_cts['buried']/pro_len,
+                    h_cts['mod_buried']/pro_len, h_cts['exposed']/pro_len]
+    else:
+        h_fracs = [0.0,0.0,0.0]
+    if 'B' in str_res_dict:
+        b_cts = Counter(str_res_dict['B'])
+        b_fracs = [b_cts['buried']/pro_len,
+                    b_cts['mod_buried']/pro_len, b_cts['exposed']]
+    else:
+        b_fracs = [0.0, 0.0, 0.0]
+    if 'C' in str_res_dict:
+        e_cts = Counter(str_res_dict['C'])
+        e_fracs = [e_cts['buried']/pro_len,
+                    e_cts['mod_buried']/pro_len, e_cts['exposed']/pro_len]
+    else:
+        e_fracs = [0.0, 0.0, 0.0]
+
     bury_locs = ['buried','mod_buried', 'exposed']
 
     aacdic = defaultdict(float)
     str_sec = 'helix'
-    for loc_i,loc in enumerate(bury_locs):
-        aacdic['_'.join(str_sec,loc)] = h_fracs[loc_i]
-    b_fracs = [b_cts['buried']/pro_len,
-               b_cts['mod_buried']/pro_len, b_cts['exposed']]
+    for loc_i, loc in enumerate(bury_locs):
+        aacdic['_'.join([str_sec,loc])] = h_fracs[loc_i]
+
     str_sec = 'beta'
     for loc_i, loc in enumerate(bury_locs):
-        aacdic['_'.join(str_sec, loc)] = b_fracs[loc_i]
-    e_fracs = [e_cts['buried']/pro_len,
-               e_cts['mod_buried']/pro_len, e_cts['exposed']/pro_len]
+        aacdic['_'.join([str_sec, loc])] = b_fracs[loc_i]
+
     str_sec = 'coil'
     for loc_i, loc in enumerate(bury_locs):
-        aacdic['_'.join(str_sec, loc)] = e_fracs[loc_i]
+        aacdic['_'.join([str_sec, loc])] = e_fracs[loc_i]
 
 
     # Amino acid composition
@@ -215,7 +240,7 @@ def calculate_aa_combos (sequence):
     return lys_arg, asp_glu, asp_glu_lys_arg, phe_tyr_trp
 
 
-def featurize(structure: Structure,nonstruct_feats: list[Any]) -> list[Any]:
+def featurize(structure: Structure, nonstruct_feats: list[Any]) -> list[Any]:
     """
     Calculates 3D ML features from the `structure`.
     """
@@ -235,10 +260,10 @@ def featurize(structure: Structure,nonstruct_feats: list[Any]) -> list[Any]:
     # create the feature vector
 
 
-    features = [protein_length, angle]
+    #features = {"pro_len"protein_length, angle}
 
 
-    features.extend(nonstruct_feats)
+    features = nonstruct_feats
 
     return (features)
 
