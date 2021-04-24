@@ -62,16 +62,21 @@ def predict(pdb_file: Path) -> float:
 
 def pdb_to_feat_vec (pdb_path):
     pdb_feat_dict = defaultdict()
-    structure = freesasa.Structure(pdb_path)
-    result = freesasa.calc(structure)
-    area_classes = freesasa.classifyResults(result, structure)
+    try:
+        structure = freesasa.Structure(pdb_path)
+        result = freesasa.calc(structure)
+        area_classes = freesasa.classifyResults(result, structure)
+    except Exception as e:
+        print(pdb_path+' failed to extract freeSASA features')
+        print(e)
+        area_classes = {'Polar' : 0.0, "Apolar":0.0}
     try:
         sec_str_based_features=predict.compute_dssp_based(pdb_path)
-    except Exception as e:
+    except Exception as exc_obj:
         print(pdb_path+' failed to extract secondary structure features')
-        print(e)
+        print(exc_obj)
+        sec_str_based_features = {}
     with open(pdb_path, 'r') as pdb_file:
-
 
         for record in SeqIO.parse(pdb_file, 'pdb-atom'):
             seq = str(record.seq)
@@ -159,6 +164,10 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
                             # reschain = ldssp[11]
 
 #                            resacc = ldssp[35:39].strip()
+                if res not in map_surface.keys():
+                   print("residue not valid in DSSP file:" + res )
+                   continue
+
                 resacc_tri = float(resacc)/map_surface[res]
                 str_code = row_dict['struct'].strip()
 
