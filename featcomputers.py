@@ -113,6 +113,8 @@ def calculate_physiochemical_features(temp_dict,sequence):
     molecular_weight = analyzed_seq.molecular_weight()
     aromaticity = analyzed_seq.aromaticity()
     molar_extinction_coefficient = analyzed_seq.molar_extinction_coefficient()
+    range_l,range_h = molar_extinction_coefficient
+    molar_extinction_coefficient =  (float(range_l) +float(range_h))/2
     gravy = analyzed_seq.gravy() #Grand Average Hyrdopathy - Higher value = More Hydrophobic
     isoelectric_point = analyzed_seq.isoelectric_point()
     helix_fraction, turn_fraction, sheet_fraction = analyzed_seq.secondary_structure_fraction()
