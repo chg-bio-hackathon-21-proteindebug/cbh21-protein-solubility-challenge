@@ -23,7 +23,8 @@ import sklearn
 import numpy as np
 
 
-MODEL_PATH = "data/first_model.bin"  # under /home/biolib
+#MODEL_PATH = "data/first_model.bin"  # under /home/biolib
+MODEL_PATH = "data/lasso_model_v1.bin"  # under /home/biolib
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.ResidueDepth import get_surface
 from Bio.PDB.vectors import calc_dihedral

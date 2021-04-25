@@ -6,5 +6,6 @@ WORKDIR /home/biolib
 RUN pip install -r requirements.txt
 COPY predict.py .
 COPY first_model.bin data/
+COPY lasso_model_v1.bin data/
 COPY data/test.zip data/
 ENTRYPOINT ["python3", "predict.py"]
