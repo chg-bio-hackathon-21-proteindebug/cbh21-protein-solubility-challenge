@@ -27,7 +27,7 @@ from featcomputers import *
 import keras
 #from keras import model, load_model
 #change this to True to predict using keras model
-use_keras_model = False
+use_keras_model = True
 import h5py
 
 #MODEL_PATH = "data/first_model.bin"  # under /home/biolib
