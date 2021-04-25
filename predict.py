@@ -288,7 +288,7 @@ def ml_inference(features: list[Any]) -> float:
 
     loaded_model = load(MODEL_PATH)
 
-    feature_vec = np.zeros(shape = (len(features),1) )
+    feature_vec = np.zeros(shape = (1,len(features)) )
     for feat_i, feat_val in enumerate(features):
         feature_vec[feat_i] = float(feat_val)
     pred_single = loaded_model.predict(feature_vec)
