@@ -202,6 +202,7 @@ if __name__ == "__main__":
         with zipfile.ZipFile(args.infile, "r") as zip_:
             zip_.extractall(tmpdir.path)
         if use_keras_model and os.path.exists(KERAS_MODEL_PATH):
+            print ("using keras model at {}".format(KERAS_MODEL_PATH))
             loaded_model = keras.models.load_model(KERAS_MODEL_PATH)
         else:
             loaded_model = load(MODEL_PATH)
