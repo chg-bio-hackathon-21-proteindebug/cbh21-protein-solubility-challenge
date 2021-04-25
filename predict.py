@@ -3,6 +3,8 @@ The entry point for your prediction algorithm.
 """
 
 from __future__ import annotations
+from featcomputers import *
+from Bio.PDB.Polypeptide import PPBuilder
 import enum
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from enum import unique
@@ -21,6 +23,7 @@ from joblib import dump, load
 from collections import Counter,defaultdict, OrderedDict
 import sklearn
 import numpy as np
+from featcomputers import *
 #from keras import model, load_model
 
 #MODEL_PATH = "data/first_model.bin"  # under /home/biolib
@@ -69,6 +72,29 @@ def predict(pdb_file: Path) -> float:
 
     return predicted_solubility
 
+
+def pdb_to_feat_vec(pdb_path):
+        #Extracting sequence
+        pdb_name= pdb_path.parts[-1]
+        structure = PDBParser().get_structure(pdb_name, pdb_path)
+        ppb = PPBuilder()
+        seq = ""  # Re-initializing to prevent any redundancy
+        for pp in ppb.build_peptides(structure):
+                seq += str(pp.get_sequence())
+
+        #Adding features
+        individual_protein_dict = {"PDB File": pdb_name,
+                                    "Sequence": seq, "Length": len(seq)}
+
+        calculate_SAS(individual_protein_dict, pdb_path, len(seq))
+        calculate_aa_combos(individual_protein_dict, seq)
+        calculate_physiochemical_features(individual_protein_dict, seq)
+        calculate_residue_features(individual_protein_dict, seq)
+        compute_DSSP(individual_protein_dict, str(pdb_path))
+
+
+
+
 def pdb_to_feat_vec (pdb_path):
     pdb_feat_dict = OrderedDict()
     try:
@@ -108,150 +134,6 @@ def pdb_to_feat_vec (pdb_path):
 
     return(pdb_feat_dict)
 
-
-
-def structure_based_feats(pdb_path):
-    sec_str_feats = compute_dssp_based(pdb_path)
-
-
-def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
-    pdb_file = os.path.basename(pdb_path)
-    pdb_name = os.path.splitext(pdb_file)[0]
-
-
-    allclass = []
-    for i in map_surface.keys():
-        allclass = allclass+['buried_'+i, 'mod_buried_'+i, 'exposed_'+i]
-    pathoutput ="/tmp/{}".format(pdb_file)
-    if not os.path.exists(pathoutput):
-        os.makedirs(pathoutput)
-    try:
-        cmd_str = '%s -i %s -o %s/%s.dssp' %  (pathmkdssp, pdb_path, pathoutput, pdb_name)
-        ret_code = os.system(cmd_str)
-        #print("DSSP run:\n", cmd_str)
-        #print ("DSSP ret code", ret_code)
-    except Exception as e:
-        print (e)
-        print("DSSP problem with pdb_file %s".format(pdb_path))
-    dssp_file = "%s/%s.dssp" %(pathoutput,pdb_name)
-    #fw.write('PDBid\t%s\n' %('\t'.join(['buried_L','buried_charged_sum','buried_aromatic'])))
-    parse_dssp = parseDSSP(dssp_file)
-    parse_dssp.parse()
-
-    pddict = parse_dssp.dictTodataframe()
-
-    pdb = pdb_name
-    chains = set(pddict['chain'].to_list())
-    #print(chains)
-    daac = defaultdict(list)
-
-    # Denominator: len_protein
-    count_pro = set()
-    with open(pdb_path, 'r') as f:
-        for row in f:
-            count_pro.add((row[72:-1], row[22:27].strip()))
-        pro_len = len(count_pro) #make sure this really computes len_protein
-
-    # wt
-
-#parse_.parse() pddict = parse_.dictTodataframe()
-
-    str_res_dict = defaultdict()
-    for chain in chains:
-        for pd_row in pddict.iterrows():
-            row_dict= pd_row[1]
-            if row_dict['chain']==chain:
-                resnum = row_dict['resnum']
-                res = row_dict['aa']
-                if res=='a': #correct for lower case cysteines
-                    res = 'C'
-                if res == '!':
-                   continue #chain break. skip this line
-                reschain = row_dict['chain']
-                resacc = row_dict['acc']
-        #with open(pathoutput+'/'+pdb+'.dssp') as fdssp:
-        #    for ldssp in fdssp:
-
-                # if re.match(r'^\s+\d+\s+\d+ {}'.format(chain), ldssp):
-                            # res = ldssp[13]
-                            # resnum = ldssp[5:10].strip()
-                            # reschain = ldssp[11]
-
-#                            resacc = ldssp[35:39].strip()
-                if res not in map_surface.keys():
-                   print("residue not valid in DSSP file:" + res )
-                   continue
-
-                resacc_tri = float(resacc)/map_surface[res]
-                str_code = row_dict['struct'].strip()
-
-                if str_code =='' or str_code =='C':
-                    str_code == 'C'
-                cur_str_val = str_res_dict.get(str_code, [])
-
-                if resacc_tri <= 0.2:
-                    resloc = 'buried'
-                    cur_str_val.append(resloc)
-                    str_res_dict.update({str_code: cur_str_val})
-                elif resacc_tri < 0.5:
-                    resloc = 'mod_buried'
-                    cur_str_val.append(resloc)
-                    str_res_dict.update({str_code: cur_str_val})
-                else:
-                    resloc = 'exposed'
-                    cur_str_val.append(resloc)
-                    str_res_dict.update({str_code: cur_str_val})
-                daac[resloc+'_'+res].append(reschain+'_'+resnum)
-    #for H, B and E get fracs
-    #print(str_res_dict)
-    if 'H' in str_res_dict:
-        h_cts = Counter(str_res_dict['H'])
-        h_fracs = [h_cts['buried']/pro_len,
-                    h_cts['mod_buried']/pro_len, h_cts['exposed']/pro_len]
-    else:
-        h_fracs = [0.0,0.0,0.0]
-    if 'B' in str_res_dict:
-        b_cts = Counter(str_res_dict['B'])
-        b_fracs = [b_cts['buried']/pro_len,
-                    b_cts['mod_buried']/pro_len, b_cts['exposed']]
-    else:
-        b_fracs = [0.0, 0.0, 0.0]
-    if 'C' in str_res_dict:
-        e_cts = Counter(str_res_dict['C'])
-        e_fracs = [e_cts['buried']/pro_len,
-                    e_cts['mod_buried']/pro_len, e_cts['exposed']/pro_len]
-    else:
-        e_fracs = [0.0, 0.0, 0.0]
-
-    bury_locs = ['buried','mod_buried', 'exposed']
-
-    aacdic = OrderedDict()
-    str_sec = 'helix'
-    for loc_i, loc in enumerate(bury_locs):
-        aacdic['_'.join([str_sec,loc])] = h_fracs[loc_i]
-
-    str_sec = 'beta'
-    for loc_i, loc in enumerate(bury_locs):
-        aacdic['_'.join([str_sec, loc])] = b_fracs[loc_i]
-
-    str_sec = 'coil'
-    for loc_i, loc in enumerate(bury_locs):
-        aacdic['_'.join([str_sec, loc])] = e_fracs[loc_i]
-
-    # Amino acid composition
-
-    for aac in allclass:
-        if aac in daac.keys():
-            aacdic[aac] = float(len(daac[aac]))/pro_len
-        else:
-            aacdic[aac] = 0
-
-    # classify
-    #aacresult = [aacdic['buried_L'],
-    #				aacdic['buried_K']+aacdic['buried_R']+aacdic['buried_D']+aacdic['buried_E'],  # charged sum
-    #				aacdic['buried_F']+aacdic['buried_W']+aacdic['buried_Y']]  # aromatic
-    # just return all aacdic for now
-    return(aacdic)
 
 def calculate_aa_combos (sequence):
     seq_length = len(sequence)
