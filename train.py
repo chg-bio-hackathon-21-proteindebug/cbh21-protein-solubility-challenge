@@ -15,6 +15,6 @@ sol_val = train_data["Solubility Score"]
 print(train_data.head())
 train_data.drop(["Solubility Score", "PDB File", "Sequence"], inplace=True, axis = 1)
 fit_mod = model.fit(train_data,sol_val)
-cv_score = cross_val_score(model,train_data,sol_val, cv =5)
+cv_score = cross_val_score(model,train_data,sol_val, cv = 5)
 print(cv_score)
 joblib.dump(fit_mod,"first_model.bin")

@@ -273,9 +273,8 @@ def featurize(structure: Structure, nonstruct_feats: OrderedDict) -> list[Any]:
 
     # create the feature vector
 
-
-    features = [v for (k,v) in nonstruct_feats.items()]
-    print (features)
+    features = [v for (k, v) in nonstruct_feats.items() if k not in ["PDB File","Sequence"]]
+    #print(features)
 
 
     return (features)
@@ -288,6 +287,7 @@ def ml_inference(features: list[Any]) -> float:
     """
 
     loaded_model = load(MODEL_PATH)
+
     feature_vec = np.array([0.0]*len(features), dtype="float" )
     for feat_i, feat_val in enumerate(features):
         feature_vec[feat_i] = float(feat_val)
