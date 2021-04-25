@@ -6,7 +6,7 @@ WORKDIR /home/biolib
 RUN pip install -r requirements.txt
 COPY predict.py .
 COPY featcomputers.py .
-COPY first_model.bin data/
+COPY Random_Forest.bin data/
 COPY lasso_model_v1.bin data/
 COPY dnn_model.h5 data/
 COPY data/test.zip data/

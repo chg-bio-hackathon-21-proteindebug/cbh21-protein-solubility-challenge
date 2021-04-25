@@ -27,11 +27,11 @@ from featcomputers import *
 import keras
 #from keras import model, load_model
 #change this to True to predict using keras model
-use_keras_model = True
+use_keras_model = False
 import h5py
 
-#MODEL_PATH = "data/first_model.bin"  # under /home/biolib
-MODEL_PATH = "data/lasso_model_v1.bin"  # under /home/biolib
+MODEL_PATH = "data/Random_Forest.bin"  # under /home/biolib
+#MODEL_PATH = "data/lasso_model_v1.bin"  # under /home/biolib
 KERAS_MODEL_PATH = "data/dnn_model.h5"
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.ResidueDepth import get_surface
