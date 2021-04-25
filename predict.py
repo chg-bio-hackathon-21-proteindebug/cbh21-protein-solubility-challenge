@@ -21,10 +21,11 @@ from joblib import dump, load
 from collections import Counter,defaultdict, OrderedDict
 import sklearn
 import numpy as np
-
+#from keras import model, load_model
 
 #MODEL_PATH = "data/first_model.bin"  # under /home/biolib
 MODEL_PATH = "data/lasso_model_v1.bin"  # under /home/biolib
+KERAS_MODEL_PATH = "data/dnn_model.h5"
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.ResidueDepth import get_surface
 from Bio.PDB.vectors import calc_dihedral
