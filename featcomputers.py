@@ -79,7 +79,7 @@ ja = {"A": 0.28, "R": -1.14, "N": -0.55, "D": -0.52, "C": 0.97,
       "S": -0.19, "T": -0.32, "W": 0.29, "Y": -0.15, "V": 0.60}
 
 def calculate_SAS(temp_dict, pdb_path,seq_len):
-    struct = freesasa.Structure(pdb_path)
+    struct = freesasa.Structure(str(pdb_path))
     result = freesasa.calc(struct)
     area_classes = freesasa.classifyResults(result, struct)
     polar = area_classes['Polar']
@@ -150,9 +150,9 @@ def calculate_residue_features(temp_dict, sequence):
 
 def compute_DSSP(temp_dict, pdb_path):
     """compute DSSP and related features"""
-    with open(pdb_path, 'r') as pdb_file:
+    with open(str(pdb_path), 'r') as pdb_file:
         try:
-            sec_str_based_features = compute_dssp_based(pdb_path)
+            sec_str_based_features = compute_dssp_based(str(pdb_path))
             temp_dict.update(sec_str_based_features)
         except Exception as e:
             print(pdb_path+' failed to extract secondary structure features')
