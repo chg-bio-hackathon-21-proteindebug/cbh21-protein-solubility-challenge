@@ -30,7 +30,7 @@ import keras
 use_keras_model = False
 import h5py
 
-MODEL_PATH = "data/Random_Forest.bin"  # under /home/biolib
+MODEL_PATH = "data/best_rbf_model.bin"  # under /home/biolib
 #MODEL_PATH = "data/lasso_model_v1.bin"  # under /home/biolib
 KERAS_MODEL_PATH = "data/dnn_model.h5"
 from Bio.PDB.PDBParser import PDBParser
