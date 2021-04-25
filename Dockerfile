@@ -5,6 +5,7 @@ RUN apt-get update && apt-get -y install dssp build-essential wget libjson-c-dev
 WORKDIR /home/biolib
 RUN pip install -r requirements.txt
 COPY predict.py .
+COPY featcomputers.py .
 COPY first_model.bin data/
 COPY lasso_model_v1.bin data/
 COPY data/test.zip data/

@@ -1,4 +1,3 @@
-
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
 from Bio.SeqUtils.ProtParam import ProteinAnalysis

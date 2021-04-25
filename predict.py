@@ -3,6 +3,7 @@ The entry point for your prediction algorithm.
 """
 
 from __future__ import annotations
+from featcomputers import *
 from Bio.PDB.Polypeptide import PPBuilder
 import enum
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
@@ -22,7 +23,7 @@ from joblib import dump, load
 from collections import Counter,defaultdict, OrderedDict
 import sklearn
 import numpy as np
-from feature_computation_functions import *
+from featcomputers import *
 #from keras import model, load_model
 
 #MODEL_PATH = "data/first_model.bin"  # under /home/biolib
