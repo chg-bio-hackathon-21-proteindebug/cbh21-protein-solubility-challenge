@@ -6,5 +6,6 @@ numpy
 temppathlib
 freesasa
 DSSPparser
+tensorflow
 keras
 h5py
