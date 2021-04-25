@@ -129,7 +129,7 @@ def compute_dssp_based(pdb_path, pathmkdssp="/usr/bin/mkdssp"):
         cmd_str = '%s -i %s -o %s/%s.dssp' %  (pathmkdssp, pdb_path, pathoutput, pdb_name)
         ret_code = os.system(cmd_str)
         #print("DSSP run:\n", cmd_str)
-        print ("DSSP ret code", ret_code)
+        #print ("DSSP ret code", ret_code)
     except Exception as e:
         print (e)
         print("DSSP problem with pdb_file %s".format(pdb_path))
