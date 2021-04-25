@@ -272,8 +272,8 @@ def featurize(structure: Structure, nonstruct_feats: OrderedDict) -> list[Any]:
 
 
     # create the feature vector
-
-    features = [v for (k, v) in nonstruct_feats.items() if k not in ["PDB File","Sequence"]]
+    remove_columns= ["PDB File", "Sequence"]
+    features = [v for (k, v) in nonstruct_feats.items() if k not in remove_columns]
     #print(features)
 
 
