@@ -83,56 +83,58 @@ def pdb_to_feat_vec(pdb_path):
                 seq += str(pp.get_sequence())
 
         #Adding features
+        # individual_protein_dict = OrderedDict(("PDB File", pdb_name),
+        #                             ("Sequence", seq), ("Length", len(seq)))
         individual_protein_dict = {"PDB File": pdb_name,
-                                    "Sequence": seq, "Length": len(seq)}
-
+                                              "Sequence": seq, "Length" :len(seq)  }
         calculate_SAS(individual_protein_dict, pdb_path, len(seq))
         calculate_aa_combos(individual_protein_dict, seq)
         calculate_physiochemical_features(individual_protein_dict, seq)
         calculate_residue_features(individual_protein_dict, seq)
         compute_DSSP(individual_protein_dict, str(pdb_path))
+        return(individual_protein_dict)
 
 
 
 
-def pdb_to_feat_vec (pdb_path):
-    pdb_feat_dict = OrderedDict()
-    try:
-        if pdb_path.is_file():
-            structure = freesasa.Structure(str(pdb_path))
-            result = freesasa.calc(structure=structure)
-            area_classes = freesasa.classifyResults(result, structure)
-        else:
-            print(str(pdb_path)+' does not exist. failed to extract freeSASA features')
-            area_classes = {'Polar': 0.0, "Apolar": 0.0}
+# def pdb_to_feat_vec (pdb_path):
+#     pdb_feat_dict = OrderedDict()
+#     try:
+#         if pdb_path.is_file():
+#             structure = freesasa.Structure(str(pdb_path))
+#             result = freesasa.calc(structure=structure)
+#             area_classes = freesasa.classifyResults(result, structure)
+#         else:
+#             print(str(pdb_path)+' does not exist. failed to extract freeSASA features')
+#             area_classes = {'Polar': 0.0, "Apolar": 0.0}
 
-    except Exception as e:
-        print(str(pdb_path)+' failed to extract freeSASA features')
-        print(e)
-        area_classes = {'Polar' : 0.0, "Apolar":0.0}
-    try:
-        sec_str_based_features=compute_dssp_based(str(pdb_path))
-    except Exception as exc_obj:
-        print(str(pdb_path)+' failed to extract secondary structure features')
-        print(exc_obj)
-        sec_str_based_features = {}
-    with open(str(pdb_path), 'r') as pdb_file:
+#     except Exception as e:
+#         print(str(pdb_path)+' failed to extract freeSASA features')
+#         print(e)
+#         area_classes = {'Polar' : 0.0, "Apolar":0.0}
+#     try:
+#         sec_str_based_features=compute_dssp_based(str(pdb_path))
+#     except Exception as exc_obj:
+#         print(str(pdb_path)+' failed to extract secondary structure features')
+#         print(exc_obj)
+#         sec_str_based_features = {}
+#     with open(str(pdb_path), 'r') as pdb_file:
 
-        for record in SeqIO.parse(pdb_file, 'pdb-atom'):
-            seq = str(record.seq)
-            LysArg, AspGlu, AspGluLysArg, PheTyrTrp = calculate_aa_combos(seq)
-            pdb_name = str(pdb_path.parts[-1])
+#         for record in SeqIO.parse(pdb_file, 'pdb-atom'):
+#             seq = str(record.seq)
+#             LysArg, AspGlu, AspGluLysArg, PheTyrTrp = calculate_aa_combos(seq)
+#             pdb_name = str(pdb_path.parts[-1])
 
-            pdb_feat_dict = OrderedDict([("PDB File", pdb_name),  ("Sequence", seq), ("Length",  len(seq)),
-                                   ("Lys+Arg/Len",  LysArg), ("Asp+Glu/Len",  AspGlu), ("Asp+Glu+Lys+Arg/Len",  AspGluLysArg),
-                                   ("Phe+Tyr+Trp/Len",  PheTyrTrp),
-                                   ("Polar",  area_classes['Polar']),
-                                   ("Apolar",  area_classes['Apolar']) ])
-            pdb_feat_dict.update(sec_str_based_features)
-            # if  not test_mode:
-            #     pdb_feat_dict["Solubility Score"] = solubility_map[pdb_name]
+#             pdb_feat_dict = OrderedDict([("PDB File", pdb_name),  ("Sequence", seq), ("Length",  len(seq)),
+#                                    ("Lys+Arg/Len",  LysArg), ("Asp+Glu/Len",  AspGlu), ("Asp+Glu+Lys+Arg/Len",  AspGluLysArg),
+#                                    ("Phe+Tyr+Trp/Len",  PheTyrTrp),
+#                                    ("Polar",  area_classes['Polar']),
+#                                    ("Apolar",  area_classes['Apolar']) ])
+#             pdb_feat_dict.update(sec_str_based_features)
+#             # if  not test_mode:
+#             #     pdb_feat_dict["Solubility Score"] = solubility_map[pdb_name]
 
-    return(pdb_feat_dict)
+#     return(pdb_feat_dict)
 
 
 def calculate_aa_combos (sequence):
