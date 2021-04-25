@@ -24,7 +24,11 @@ from collections import Counter,defaultdict, OrderedDict
 import sklearn
 import numpy as np
 from featcomputers import *
+import keras
 #from keras import model, load_model
+#change this to True to predict using keras model
+use_keras = False
+import h5py
 
 #MODEL_PATH = "data/first_model.bin"  # under /home/biolib
 MODEL_PATH = "data/lasso_model_v1.bin"  # under /home/biolib
@@ -53,7 +57,7 @@ DSSP_codes = {"H" # = α-helix
               "S",  # = bend
 }
 
-def predict(pdb_file: Path) -> float:
+def predict(pdb_file: Path, loaded_model) -> float:
     """
     The function that puts it all together: parsing the PDB file, generating
     features from it and performing inference with the ML model.
@@ -68,7 +72,8 @@ def predict(pdb_file: Path) -> float:
     # featurize + perform inference
     all_features = featurize(structure,init_feat_vec)
 
-    predicted_solubility = ml_inference(all_features)
+    predicted_solubility = ml_inference(
+        all_features, loaded_model)
 
     return predicted_solubility
 
@@ -166,13 +171,13 @@ def featurize(structure: Structure, nonstruct_feats: OrderedDict) -> list[Any]:
     return (features)
 
 
-def ml_inference(features: list[Any]) -> float:
+def ml_inference(features: list[Any],loaded_model) -> float:
     """
     This would be a function where you normalize/standardize your features and
     then feed them to your trained ML model (which you would load from a file).
     """
 
-    loaded_model = load(MODEL_PATH)
+
 
     feature_vec = np.zeros(shape = (1,len(features)) )
     for feat_i, feat_val in enumerate(features):
@@ -196,10 +201,14 @@ if __name__ == "__main__":
         # unzip the file with all the test PDBs
         with zipfile.ZipFile(args.infile, "r") as zip_:
             zip_.extractall(tmpdir.path)
+        if use_keras_model and os.path.exists(KERAS_MODEL_PATH):
+            loaded_model = keras.models.load_model(KERAS_MODEL_PATH)
+        else:
+            loaded_model = load(MODEL_PATH)
 
         # iterate over all test PDBs and generate predictions
         for test_pdb in tmpdir.path.glob("*.pdb"):
-            predictions.append({"protein": test_pdb.stem, "solubility": predict(test_pdb)})
+            predictions.append({"protein": test_pdb.stem, "solubility": predict(test_pdb,loaded_model=loaded_model)})
 
     # save to csv file, this will be used for benchmarking
     outpath = "predictions.csv"
