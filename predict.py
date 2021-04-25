@@ -183,8 +183,8 @@ def ml_inference(features: list[Any],loaded_model) -> float:
     for feat_i, feat_val in enumerate(features):
         feature_vec[0,feat_i] = float(feat_val)
     pred_single = loaded_model.predict(feature_vec)
-
-    return max(0.01,pred_single[0])
+    pred_single = pred_single.item()
+    return max(0.01,pred_single)
 
 
 
