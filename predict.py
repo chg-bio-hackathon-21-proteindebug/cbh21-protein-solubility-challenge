@@ -179,7 +179,7 @@ def ml_inference(features: list[Any]) -> float:
         feature_vec[0,feat_i] = float(feat_val)
     pred_single = loaded_model.predict(feature_vec)
 
-    return (pred_single)
+    return (pred_single[0])
 
 
 
