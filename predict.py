@@ -137,15 +137,15 @@ def pdb_to_feat_vec(pdb_path):
 #     return(pdb_feat_dict)
 
 
-def calculate_aa_combos (sequence):
-    seq_length = len(sequence)
+# def calculate_aa_combos (sequence):
+#     seq_length = len(sequence)
 
-    lys_arg = round((sequence.count("K") + sequence.count("R")) /seq_length, 3)
-    asp_glu = round((sequence.count("D") + sequence.count("E")) /seq_length, 3)
-    asp_glu_lys_arg = round(lys_arg + asp_glu, 3)
-    phe_tyr_trp = round((sequence.count("F")+ sequence.count("Y") + sequence.count("W")) /seq_length, 3)
+#     lys_arg = round((sequence.count("K") + sequence.count("R")) /seq_length, 3)
+#     asp_glu = round((sequence.count("D") + sequence.count("E")) /seq_length, 3)
+#     asp_glu_lys_arg = round(lys_arg + asp_glu, 3)
+#     phe_tyr_trp = round((sequence.count("F")+ sequence.count("Y") + sequence.count("W")) /seq_length, 3)
 
-    return lys_arg, asp_glu, asp_glu_lys_arg, phe_tyr_trp
+#     return lys_arg, asp_glu, asp_glu_lys_arg, phe_tyr_trp
 
 
 def featurize(structure: Structure, nonstruct_feats: OrderedDict) -> list[Any]:
