@@ -6,3 +6,5 @@ numpy
 temppathlib
 freesasa
 DSSPparser
+keras
+h5py
